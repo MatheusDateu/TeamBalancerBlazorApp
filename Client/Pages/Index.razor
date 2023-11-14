@@ -1,0 +1,392 @@
+﻿@page "/"
+
+<div class="container mt-4">
+    <div class="team-container team-red-container">
+        <h2 class="text-center">Time Vermelho</h2>
+        <div class="card-container team-red">
+            @if (PlayersTeamRed != null)
+            {
+                @foreach (var player in PlayersTeamRed)
+                {
+                    <div class="card" @onclick="() => TogglePlayer(player)">
+                        <img src="@player.ImageUrl" class="card-img-left" alt="@player.Name">
+                        <p class="card-text">@player.Name</p>
+                    </div>
+                }
+            }
+            else
+            {
+                @for (int i = 0; i < 5; i++)
+                {
+                    <div class="card">
+                        <img src="https://via.placeholder.com/90" class="card-img-left" alt="Player 6">
+                        <p class="card-text">Jogador 6</p>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+    <div class="button-container">
+        <button class="shuffle-button" @onclick="ShufflePlayers">Embaralhar</button>
+        @if (!isShuffled)
+        {
+            <p style="color: yellow">Aguarde</p>
+        }
+    </div>
+
+    <div class="team-container team-black-container">
+        <h2 class="text-center">Time Preto</h2>
+        <div class="card-container team-black">
+            @if (PlayersTeamBlack != null)
+            {
+                @foreach (var player in PlayersTeamBlack)
+                {
+                    <div class="card" @onclick="() => TogglePlayer(player)">
+                        <img src="@player.ImageUrl" class="card-img-right" alt="@player.Name">
+                        <p class="card-text">@player.Name</p>
+                    </div>
+                }
+            }
+            else
+            {
+                @for (int i = 0; i < 5; i++)
+                {
+                    <div class="card">
+                        <img src="https://via.placeholder.com/90" class="card-img-right" alt="Player 6">
+                        <p class="card-text">Jogador 6</p>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div class="barreira-container">
+        <h2>Barreira</h2>
+        <button class="new-player-button" @onclick="ShowAddPlayerPopup">Novo Jogador</button>
+    </div>
+    <!-- Listagem de jogadores na barreira -->
+    <div class="team-container">
+        <div class="card-container flex-container">
+            <!-- Adicionando a classe flex-container -->
+            @if (PlayersTeamOutGame != null)
+            {
+                foreach (var player in PlayersTeamOutGame)
+                {
+                    <div class="card card-footer" @onclick="() => TogglePlayer(player)">
+                        <!-- Adicionando a classe card-footer -->
+                        <img src="@player.ImageUrl" class="card-img-left" alt="@player.Name">
+                        <p style="color: black" class="card-text">@player.Name</p>
+                    </div>
+                }
+            }
+            else
+            {
+                <div>
+                    <p style="color: darkred;font-size: 1.5em;">Não há jogadores reservas</p>
+                </div>
+            }
+        </div>
+    </div>
+
+</footer>
+
+<!-- Popup para adicionar novo jogador -->
+@if (showAddPlayerPopup)
+{
+    <div class="popup">
+        <div class="popup-content">
+            <span class="close-popup" @onclick="HideAddPlayerPopup">&times;</span>
+            <h2 class="popup-title">Adicionar Novo Jogador</h2>
+            <form>
+                <div class="form-group">
+                    <label for="newPlayerName">Nome:</label>
+                    <input type="text" id="newPlayerName" @bind="newPlayerName" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="newPlayerImageUrl">URL da Foto de Perfil:</label>
+                    <input type="text" id="newPlayerImageUrl" @bind="newPlayerImageUrl" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="newPlayerPoints">Pontos (de 0 a 10):</label>
+                    <input type="number" id="newPlayerPoints" @bind="newPlayerPoints" min="0" max="10" class="form-control">
+                </div>
+
+                <button type="button" @onclick="AddNewPlayer" class="btn btn-primary">Adicionar</button>
+            </form>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Player> PlayersTeamRed = new();
+    private List<Player> PlayersTeamBlack = new();
+    private List<Player> PlayersTeamOutGame = new();
+    private List<TeamCombination> TeamCombinations = new();
+
+    private bool isFirstMatch = true;
+    private bool isShuffled = true;
+
+    private bool showAddPlayerPopup = false;
+    private string newPlayerName = "";
+    private string newPlayerImageUrl = "";
+    private int newPlayerPoints = 0;
+
+    protected override void OnInitialized()
+    {
+        Console.WriteLine("OnInitialized method called");
+        // Adicionar jogadores à lista inicial
+        PlayersTeamOutGame = new List<Player>
+        {
+            new Player { Name = "Matheus Delmondes", ImageUrl = "https://via.placeholder.com/90", PointsOfSkills = 10 },
+            new Player { Name = "Samuel", ImageUrl = "https://via.placeholder.com/90", PointsOfSkills = 10 },
+            new Player { Name = "Antonino", ImageUrl = "https://via.placeholder.com/90", PointsOfSkills = 8 },
+            new Player { Name = "Bruno", ImageUrl = "https://via.placeholder.com/90", PointsOfSkills = 8 },
+            new Player { Name = "Rihan", ImageUrl = "https://via.placeholder.com/90", PointsOfSkills = 9 },
+            new Player { Name = "Marcos", ImageUrl = "https://via.placeholder.com/90", PointsOfSkills = 8 },
+            new Player { Name = "Lucas Bessa", ImageUrl = "https://via.placeholder.com/90", PointsOfSkills = 7 },
+            new Player { Name = "Alexandre V.", ImageUrl = "https://via.placeholder.com/90", PointsOfSkills = 6 },
+            new Player { Name = "Henrique Lino", ImageUrl = "https://via.placeholder.com/90", PointsOfSkills = 6 },
+            new Player { Name = "Thiago Melo", ImageUrl = "https://via.placeholder.com/90", PointsOfSkills = 5 },
+            new Player { Name = "Benjamin", ImageUrl = "https://via.placeholder.com/90", PointsOfSkills = 4 },
+            new Player { Name = "Matheus Brayan", ImageUrl = "https://via.placeholder.com/90", PointsOfSkills = 2 },
+            new Player { Name = "Ismael", ImageUrl = "https://via.placeholder.com/90", PointsOfSkills = 7 },
+            new Player { Name = "Ataías", ImageUrl = "https://via.placeholder.com/90", PointsOfSkills = 7 },
+        };
+
+        base.OnInitialized();
+    }
+
+    private void ShufflePlayers()
+    {
+        isShuffled = false;
+        Console.WriteLine("ShufflePlayers method called");
+
+        // Limpar combinações existentes antes de criar novas
+        TeamCombinations = new List<TeamCombination>();
+
+        // Verificar se há pelo menos 5 jogadores em ambos os times
+        if (PlayersTeamRed.Count >= 5 && PlayersTeamBlack.Count >= 5)
+        {
+            // Todas as combinações possíveis de jogadores
+            var allPlayerCombinations = GetCombinations(PlayersTeamRed.Concat(PlayersTeamBlack).ToList(), 5);
+
+            if (allPlayerCombinations.Any())
+            {
+                // Calcular métricas para cada combinação
+                foreach (var combination in allPlayerCombinations)
+                {
+                    var teamRed = combination.Take(5).ToList();
+                    var teamBlack = combination.Skip(5).ToList();
+
+                    Console.WriteLine($"Number of combinations: {allPlayerCombinations.Count}");
+                    Console.WriteLine($"Combination: {string.Join(", ", combination.Select(player => player.Name))}");
+
+                    if (teamRed.Any() && teamBlack.Any())
+                    {
+                        var averagePointsRed = teamRed.Average(player => player.PointsOfSkills);
+                        var averagePointsBlack = teamBlack.Average(player => player.PointsOfSkills);
+
+                        var difference = Math.Abs(averagePointsRed - averagePointsBlack);
+
+                        TeamCombinations.Add(new TeamCombination
+                            {
+                                TeamRed = teamRed,
+                                TeamBlack = teamBlack,
+                                AveragePointsDifference = difference,
+                                AveragePointsRed = averagePointsRed,
+                                AveragePointsBlack = averagePointsBlack
+                            });
+
+                        Console.WriteLine($"  Team Red: {string.Join(", ", teamRed.Select(player => player.Name))}");
+                        Console.WriteLine($"  Team Black: {string.Join(", ", teamBlack.Select(player => player.Name))}");
+                        Console.WriteLine($"  Average Points Difference: {difference}");
+                        Console.WriteLine();
+                    }
+                }
+
+                // Ordenar as combinações por diferença de pontos médios
+                TeamCombinations = TeamCombinations.OrderBy(tc => tc.AveragePointsDifference).ToList();
+
+                // Verificar se há elementos na lista antes de acessar o primeiro
+                if (TeamCombinations.Any())
+                {
+                    // Atualizar os times com o balanceamento do primeiro item da lista (menor diferença)
+                    PlayersTeamRed = TeamCombinations.First().TeamRed;
+                    PlayersTeamBlack = TeamCombinations.First().TeamBlack;
+                }
+
+                isShuffled = true;
+
+                // Indicar ao Blazor que a exibição deve ser atualizada
+                UpdateUI();
+            }
+            else
+            {
+                Console.WriteLine("No combinations found");
+                isShuffled = false;
+                UpdateUI(); // Certifique-se de atualizar a interface mesmo se não houver combinações
+            }
+
+            Console.WriteLine($"isShuffled: {isShuffled}");
+        }
+        else
+        {
+            // Caso não haja jogadores suficientes em ambos os times, trate isso conforme necessário
+            Console.WriteLine("Não há jogadores suficientes em ambos os times para embaralhar.");
+            isShuffled = false;
+            UpdateUI();
+        }
+    }
+    List<List<Player>> result = new List<List<Player>>();
+
+    private List<List<Player>> GetCombinations(List<Player> players, int teamSize)
+    {
+        Combine(result, players, 0, new List<Player>(), teamSize);
+        return result;
+    }
+
+    private void Combine(List<List<Player>> result, List<Player> players, int start, List<Player> current, int teamSize)
+    {
+        if (current.Count == teamSize)
+        {
+            result.Add(new List<Player>(current));
+            return;
+        }
+
+        for (int i = start; i < players.Count; i++)
+        {
+            // Adiciona jogadores alternadamente para evitar o problema de Skip(5)
+            current.Add(players[i]);
+
+            // Verifica se é a vez de adicionar ao time preto
+            if (current.Count % 2 == 0)
+            {
+                Combine(result, players, i + 1, current, teamSize);
+            }
+            else if (current.Count + teamSize < players.Count)
+            {
+                // Adiciona ao segundo time (time preto)
+                current.Add(players[current.Count + teamSize]);
+                Combine(result, players, i + 1, current, teamSize);
+                current.RemoveAt(current.Count - 1);
+            }
+
+            current.RemoveAt(current.Count - 1);
+        }
+    }
+
+    private void TogglePlayer(Player player)
+    {
+        Console.WriteLine($"TogglePlayer method called for player: {player.Name}");
+
+        if (PlayersTeamRed.Contains(player) || PlayersTeamBlack.Contains(player))
+        {
+            // Se o jogador está em um time, remove-o e o adiciona de volta à barreira
+            PlayersTeamRed.Remove(player);
+            PlayersTeamBlack.Remove(player);
+            PlayersTeamOutGame.Add(player);
+        }
+        else if (PlayersTeamRed.Count < 5)
+        {
+            // Se houver espaço no time vermelho, adiciona o jogador ao time vermelho
+            PlayersTeamRed.Add(player);
+            PlayersTeamOutGame.Remove(player);
+        }
+        else if (PlayersTeamBlack.Count < 5)
+        {
+            // Se houver espaço no time preto, adiciona o jogador ao time preto
+            PlayersTeamBlack.Add(player);
+            PlayersTeamOutGame.Remove(player);
+        }
+        // Se não houver espaço em nenhum time, o jogador permanece na barreira
+
+        Console.WriteLine($"Player {player.Name} toggled. TeamRed count: {PlayersTeamRed.Count}, TeamBlack count: {PlayersTeamBlack.Count}, TeamOutGame count: {PlayersTeamOutGame.Count}");
+
+        UpdateUI();
+    }
+
+    private void ShowAddPlayerPopup()
+    {
+        showAddPlayerPopup = true;
+        UpdateUI();
+    }
+
+    private void HideAddPlayerPopup()
+    {
+        showAddPlayerPopup = false;
+        UpdateUI();
+    }
+
+    private void AddNewPlayer()
+    {
+        // Validar os dados do novo jogador aqui, se necessário
+        if (string.IsNullOrWhiteSpace(newPlayerName))
+        {
+            // Mostrar uma mensagem de erro ou fazer algo apropriado
+            return;
+        }
+
+        if (PlayersTeamOutGame == null)
+        {
+            PlayersTeamOutGame = new List<Player>();
+        }
+
+        if (string.IsNullOrWhiteSpace(newPlayerImageUrl))
+        {
+            newPlayerImageUrl = "https://via.placeholder.com/90";
+        }
+
+        // Criar o novo jogador
+        var newPlayer = new Player
+            {
+                Name = newPlayerName,
+                ImageUrl = newPlayerImageUrl,
+                PointsOfSkills = newPlayerPoints
+            };
+
+        // Adicionar o novo jogador à lista da barreira
+        PlayersTeamOutGame.Add(newPlayer);
+
+        // Limpar os campos do formulário
+        newPlayerName = "";
+        newPlayerImageUrl = "";
+        newPlayerPoints = 0;
+
+        // Fechar o popup
+        showAddPlayerPopup = false;
+        UpdateUI();
+    }
+    private void UpdateUI()
+    {
+        InvokeAsync(() => StateHasChanged());
+    }
+
+
+    class TeamCombination
+    {
+        public List<Player> TeamRed { get; set; }
+        public List<Player> TeamBlack { get; set; }
+        public double AveragePointsDifference { get; set; }
+        public double AveragePointsRed { get; set; }
+        public double AveragePointsBlack { get; set; }
+    }
+
+    class Player
+    {
+        public int ID { get; set; }
+        public string Name { get; set; }
+        public string ImageUrl { get; set; }
+        public int PointsOfSkills { get; set; }
+        private static int _ID;
+
+        public Player()
+        {
+            ID = _ID + 1;
+        }
+    }
+}
