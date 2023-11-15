@@ -1,5 +1,7 @@
 ﻿@page "/"
 
+@inject IJSRuntime JSRuntime
+
 <div class="container mt-4">
     <div class="team-container team-red-container">
         <h2 class="text-center">Time Vermelho</h2>
@@ -29,10 +31,6 @@
 
     <div class="button-container">
         <button class="shuffle-button" @onclick="ShufflePlayers">Embaralhar</button>
-        @if (!isShuffled)
-        {
-            <p style="color: yellow">Aguarde</p>
-        }
     </div>
 
     <div class="team-container team-black-container">
@@ -64,7 +62,7 @@
 
 <footer>
     <div class="barreira-container">
-        <h2>Barreira</h2>
+        <h2>Barreira: @PlayersTeamOutGame.Count jogadores cansados</h2>
         <button class="new-player-button" @onclick="ShowAddPlayerPopup">Novo Jogador</button>
     </div>
     <!-- Listagem de jogadores na barreira -->
@@ -129,7 +127,6 @@
     private List<TeamCombination> TeamCombinations = new();
 
     private bool isFirstMatch = true;
-    private bool isShuffled = true;
 
     private bool showAddPlayerPopup = false;
     private string newPlayerName = "";
@@ -142,144 +139,125 @@
         // Adicionar jogadores à lista inicial
         PlayersTeamOutGame = new List<Player>
         {
-            new Player { Name = "Matheus Delmondes", ImageUrl = "https://via.placeholder.com/90", PointsOfSkills = 10 },
-            new Player { Name = "Samuel", ImageUrl = "https://via.placeholder.com/90", PointsOfSkills = 10 },
-            new Player { Name = "Antonino", ImageUrl = "https://via.placeholder.com/90", PointsOfSkills = 8 },
-            new Player { Name = "Bruno", ImageUrl = "https://via.placeholder.com/90", PointsOfSkills = 8 },
-            new Player { Name = "Rihan", ImageUrl = "https://via.placeholder.com/90", PointsOfSkills = 9 },
-            new Player { Name = "Marcos", ImageUrl = "https://via.placeholder.com/90", PointsOfSkills = 8 },
-            new Player { Name = "Lucas Bessa", ImageUrl = "https://via.placeholder.com/90", PointsOfSkills = 7 },
-            new Player { Name = "Alexandre V.", ImageUrl = "https://via.placeholder.com/90", PointsOfSkills = 6 },
-            new Player { Name = "Henrique Lino", ImageUrl = "https://via.placeholder.com/90", PointsOfSkills = 6 },
-            new Player { Name = "Thiago Melo", ImageUrl = "https://via.placeholder.com/90", PointsOfSkills = 5 },
-            new Player { Name = "Benjamin", ImageUrl = "https://via.placeholder.com/90", PointsOfSkills = 4 },
-            new Player { Name = "Matheus Brayan", ImageUrl = "https://via.placeholder.com/90", PointsOfSkills = 2 },
-            new Player { Name = "Ismael", ImageUrl = "https://via.placeholder.com/90", PointsOfSkills = 7 },
-            new Player { Name = "Ataías", ImageUrl = "https://via.placeholder.com/90", PointsOfSkills = 7 },
+            new Player { Name = "Matheus Delmondes", ImageUrl = "https://th.bing.com/th/id/OIP.R3jaK2LrLmDOQXWdE--qhwHaHa?pid=ImgDet&rs=1", SkillPointsAverage = 10 },
+            new Player { Name = "Samuel", ImageUrl = "https://via.placeholder.com/90", SkillPointsAverage = 9 },
+            new Player { Name = "Antonino", ImageUrl = "https://via.placeholder.com/90", SkillPointsAverage = 5 },
+            new Player { Name = "Bruno Zamorano", ImageUrl = "https://via.placeholder.com/90", SkillPointsAverage = 6 },
+            new Player { Name = "Rihan", ImageUrl = "https://via.placeholder.com/90", SkillPointsAverage = 7 },
+            new Player { Name = "Marcos", ImageUrl = "https://via.placeholder.com/90", SkillPointsAverage = 6 },
+            new Player { Name = "Lucas Bessa", ImageUrl = "https://via.placeholder.com/90", SkillPointsAverage = 5 },
+            new Player { Name = "Alexandre V.", ImageUrl = "https://via.placeholder.com/90", SkillPointsAverage = 3 },
+            new Player { Name = "Henrique Lino", ImageUrl = "https://via.placeholder.com/90", SkillPointsAverage = 4 },
+            new Player { Name = "Thiago Melo", ImageUrl = "https://via.placeholder.com/90", SkillPointsAverage = 2 },
+            new Player { Name = "Benjamin", ImageUrl = "https://via.placeholder.com/90", SkillPointsAverage = 3 },
+            new Player { Name = "Matheus Brayan", ImageUrl = "https://via.placeholder.com/90", SkillPointsAverage = 2 },
+            new Player { Name = "Ismael", ImageUrl = "https://via.placeholder.com/90", SkillPointsAverage = 6 },
+            new Player { Name = "G. Borba", ImageUrl = "https://via.placeholder.com/90", SkillPointsAverage = 3 },
+            new Player { Name = "Pedro", ImageUrl = "https://via.placeholder.com/90", SkillPointsAverage = 1 },
+            new Player { Name = "Matheus F. James", ImageUrl = "https://via.placeholder.com/90", SkillPointsAverage = 7 },
+            new Player { Name = "Hitalo", ImageUrl = "https://via.placeholder.com/90", SkillPointsAverage = 8 },
+            new Player { Name = "Ataías", ImageUrl = "https://via.placeholder.com/90", SkillPointsAverage = 6 },
         };
 
         base.OnInitialized();
     }
-
-    private void ShufflePlayers()
+    private async Task MostrarAlerta ()
     {
-        isShuffled = false;
-        Console.WriteLine("ShufflePlayers method called");
-
-        // Limpar combinações existentes antes de criar novas
-        TeamCombinations = new List<TeamCombination>();
-
-        // Verificar se há pelo menos 5 jogadores em ambos os times
-        if (PlayersTeamRed.Count >= 5 && PlayersTeamBlack.Count >= 5)
+        await JSRuntime.InvokeAsync<object> ("alert", "Os times foram balanceados. Clique em 'Ok' para ver o resultado. ;-)");
+    }
+    private async Task MostrarAlerta (string message)
+    {
+        await JSRuntime.InvokeAsync<object> ("alert", message);
+    }
+    private async void ShufflePlayers()
+    {
+        bool alreadyHasPlayersToPlayAMatch = PlayersTeamRed.Any() && PlayersTeamBlack.Any();
+        if (!alreadyHasPlayersToPlayAMatch)
         {
-            // Todas as combinações possíveis de jogadores
-            var allPlayerCombinations = GetCombinations(PlayersTeamRed.Concat(PlayersTeamBlack).ToList(), 5);
-
-            if (allPlayerCombinations.Any())
+            while (PlayersTeamRed.Count <= 5 && PlayersTeamBlack.Count < 5)
             {
-                // Calcular métricas para cada combinação
-                foreach (var combination in allPlayerCombinations)
+                int playerOutGameQuantity = PlayersTeamOutGame.Count();
+                int randomIndex = new Random().Next(0, playerOutGameQuantity);
+                TogglePlayer(PlayersTeamOutGame[randomIndex]);
+                await Task.Delay(70);
+            }
+            await Task.Delay(2000);
+        }
+        while (PlayersTeamRed.Count <= 5 && PlayersTeamBlack.Count < 5)
+        {
+            int playerOutGameQuantity = PlayersTeamOutGame.Count();
+            int randomIndex = new Random().Next(0, playerOutGameQuantity);
+            TogglePlayer(PlayersTeamOutGame[randomIndex]);
+            await Task.Delay(70);
+        }
+        var teamRed = new List<Player>(PlayersTeamRed);
+        var teamBlack = new List<Player>(PlayersTeamBlack);
+        var teamRedSum = GetSum(teamRed);
+        var teamBlackSum = GetSum(teamBlack);
+
+        bool isBetter = true;
+
+        while (isBetter)
+        {
+            isBetter = false;
+            int betterI = -1;
+            int betterJ = -1;
+            int betterDifference = Math.Abs(teamRedSum - teamBlackSum);
+
+            // Testa todas as possíveis trocas entre os conjuntos
+            for (int i = 0; i < teamRed.Count; i++)
+            {
+                for (int j = 0; j < teamBlack.Count; j++)
                 {
-                    var teamRed = combination.Take(5).ToList();
-                    var teamBlack = combination.Skip(5).ToList();
+                    // Calcula a nova soma de cada conjunto se trocar os jogadores nas posições i e j
+                    int newTeamRedSum = teamRedSum - teamRed[i].SkillPointsAverage + teamBlack[j].SkillPointsAverage;
+                    int newTeamBlackSum = teamBlackSum - teamBlack[j].SkillPointsAverage + teamRed[i].SkillPointsAverage;
 
-                    Console.WriteLine($"Number of combinations: {allPlayerCombinations.Count}");
-                    Console.WriteLine($"Combination: {string.Join(", ", combination.Select(player => player.Name))}");
+                    // Calcula a nova diferença entre as somas (considerando apenas o valor absoluto/modular)
+                    int newDifference = Math.Abs(newTeamRedSum - newTeamBlackSum);
 
-                    if (teamRed.Any() && teamBlack.Any())
+                    // Se a nova diferença for menor que a melhor diferença encontrada até agora, atualiza as variáveis
+                    if (newDifference < betterDifference)
                     {
-                        var averagePointsRed = teamRed.Average(player => player.PointsOfSkills);
-                        var averagePointsBlack = teamBlack.Average(player => player.PointsOfSkills);
-
-                        var difference = Math.Abs(averagePointsRed - averagePointsBlack);
-
-                        TeamCombinations.Add(new TeamCombination
-                            {
-                                TeamRed = teamRed,
-                                TeamBlack = teamBlack,
-                                AveragePointsDifference = difference,
-                                AveragePointsRed = averagePointsRed,
-                                AveragePointsBlack = averagePointsBlack
-                            });
-
-                        Console.WriteLine($"  Team Red: {string.Join(", ", teamRed.Select(player => player.Name))}");
-                        Console.WriteLine($"  Team Black: {string.Join(", ", teamBlack.Select(player => player.Name))}");
-                        Console.WriteLine($"  Average Points Difference: {difference}");
-                        Console.WriteLine();
+                        betterI = i;
+                        betterJ = j;
+                        betterDifference = newDifference;
+                        isBetter = true;
                     }
                 }
-
-                // Ordenar as combinações por diferença de pontos médios
-                TeamCombinations = TeamCombinations.OrderBy(tc => tc.AveragePointsDifference).ToList();
-
-                // Verificar se há elementos na lista antes de acessar o primeiro
-                if (TeamCombinations.Any())
-                {
-                    // Atualizar os times com o balanceamento do primeiro item da lista (menor diferença)
-                    PlayersTeamRed = TeamCombinations.First().TeamRed;
-                    PlayersTeamBlack = TeamCombinations.First().TeamBlack;
-                }
-
-                isShuffled = true;
-
-                // Indicar ao Blazor que a exibição deve ser atualizada
-                UpdateUI();
             }
-            else
+
+            // Se houve melhoria, realiza a troca entre os conjuntos e atualiza as somas
+            if (isBetter)
             {
-                Console.WriteLine("No combinations found");
-                isShuffled = false;
-                UpdateUI(); // Certifique-se de atualizar a interface mesmo se não houver combinações
+                Player _ = teamRed[betterI];
+                teamRed[betterI] = teamBlack[betterJ];
+                teamBlack[betterJ] = _;
+
+                teamRedSum = GetSum(teamRed);
+                teamBlackSum = GetSum(teamBlack);
             }
-
-            Console.WriteLine($"isShuffled: {isShuffled}");
         }
-        else
+
+        // Imprime os times finais
+        Console.WriteLine("Time Red:");
+        foreach (var jogador in teamRed)
         {
-            // Caso não haja jogadores suficientes em ambos os times, trate isso conforme necessário
-            Console.WriteLine("Não há jogadores suficientes em ambos os times para embaralhar.");
-            isShuffled = false;
-            UpdateUI();
+            Console.WriteLine($"{jogador.Name}: {jogador.SkillPointsAverage}");
         }
-    }
-    List<List<Player>> result = new List<List<Player>>();
 
-    private List<List<Player>> GetCombinations(List<Player> players, int teamSize)
-    {
-        Combine(result, players, 0, new List<Player>(), teamSize);
-        return result;
-    }
-
-    private void Combine(List<List<Player>> result, List<Player> players, int start, List<Player> current, int teamSize)
-    {
-        if (current.Count == teamSize)
+        Console.WriteLine("\nTime Black:");
+        foreach (var jogador in teamBlack)
         {
-            result.Add(new List<Player>(current));
-            return;
+            Console.WriteLine($"{jogador.Name}: {jogador.SkillPointsAverage}");
         }
 
-        for (int i = start; i < players.Count; i++)
-        {
-            // Adiciona jogadores alternadamente para evitar o problema de Skip(5)
-            current.Add(players[i]);
-
-            // Verifica se é a vez de adicionar ao time preto
-            if (current.Count % 2 == 0)
-            {
-                Combine(result, players, i + 1, current, teamSize);
-            }
-            else if (current.Count + teamSize < players.Count)
-            {
-                // Adiciona ao segundo time (time preto)
-                current.Add(players[current.Count + teamSize]);
-                Combine(result, players, i + 1, current, teamSize);
-                current.RemoveAt(current.Count - 1);
-            }
-
-            current.RemoveAt(current.Count - 1);
-        }
+        PlayersTeamRed = new List<Player>(teamRed);
+        PlayersTeamBlack = new List<Player>(teamBlack);
+        UpdateUI();
+        await MostrarAlerta();
     }
-
+    static int GetSum(List<Player> jogadores) => jogadores.Sum(p => p.SkillPointsAverage);
     private void TogglePlayer(Player player)
     {
         Console.WriteLine($"TogglePlayer method called for player: {player.Name}");
@@ -309,25 +287,22 @@
 
         UpdateUI();
     }
-
     private void ShowAddPlayerPopup()
     {
         showAddPlayerPopup = true;
         UpdateUI();
     }
-
     private void HideAddPlayerPopup()
     {
         showAddPlayerPopup = false;
         UpdateUI();
     }
-
     private void AddNewPlayer()
     {
         // Validar os dados do novo jogador aqui, se necessário
         if (string.IsNullOrWhiteSpace(newPlayerName))
         {
-            // Mostrar uma mensagem de erro ou fazer algo apropriado
+            MostrarAlerta("Ao cadastrador um Novo Jogador é importante que informe o nome dele. Colabore. :)");
             return;
         }
 
@@ -346,7 +321,7 @@
             {
                 Name = newPlayerName,
                 ImageUrl = newPlayerImageUrl,
-                PointsOfSkills = newPlayerPoints
+                SkillPointsAverage = newPlayerPoints
             };
 
         // Adicionar o novo jogador à lista da barreira
@@ -366,7 +341,6 @@
         InvokeAsync(() => StateHasChanged());
     }
 
-
     class TeamCombination
     {
         public List<Player> TeamRed { get; set; }
@@ -375,18 +349,10 @@
         public double AveragePointsRed { get; set; }
         public double AveragePointsBlack { get; set; }
     }
-
     class Player
     {
-        public int ID { get; set; }
-        public string Name { get; set; }
-        public string ImageUrl { get; set; }
-        public int PointsOfSkills { get; set; }
-        private static int _ID;
-
-        public Player()
-        {
-            ID = _ID + 1;
-        }
+        public string Name { get; set; } = "Anônimo";
+        public int SkillPointsAverage { get; set; } = 0;
+        public string ImageUrl { get; set; } = "https://via.placeholder.com/90";
     }
 }
